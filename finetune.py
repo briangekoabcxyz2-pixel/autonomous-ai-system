@@ -66,3 +66,9 @@ CHECKPOINT_PATH.mkdir(parents=True, exist_ok=True)
 model.save_pretrained(str(CHECKPOINT_PATH))
 tokenizer.save_pretrained(str(CHECKPOINT_PATH))
 print("[Fine-tune] Model saved to checkpoints/latest!")
+# Compress checkpoint for GitHub storage
+import subprocess
+if CHECKPOINT_PATH.exists():
+    print("[Fine-tune] Compressing checkpoint...")
+    subprocess.run(["tar", "-czf", "checkpoints/model.tar.gz", str(CHECKPOINT_PATH)])
+    print("[Fine-tune] Saved to checkpoints/model.tar.gz")
