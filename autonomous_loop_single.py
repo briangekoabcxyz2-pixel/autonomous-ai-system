@@ -216,6 +216,9 @@ def run():
         print("[AAES] Run complete!")
 
     except Exception as e:
+        if "429" in str(e) or "rate_limit" in str(e).lower():
+            print("[Rate Limit] Daily token limit reached. Exiting gracefully.")
+            exit(0)
         print(f"[ERROR] {e}")
         raise
 
