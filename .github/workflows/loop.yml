@@ -26,10 +26,12 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: timeout 480 python3 autonomous_loop_single.py || true
 
-      - name: Save training data
+      - name: Save training data and keep alive
         run: |
           git config user.email "aaes@auto.com"
           git config user.name "AAES Bot"
           git add datasets/training_data.jsonl || true
-          git diff --staged --quiet || git commit -m "Auto: new training record"
+          echo "$(date)" >> .keepalive
+          git add .keepalive
+          git diff --staged --quiet || git commit -m "Auto: training record $(date +%Y%m%d-%H%M)"
           git push || true
