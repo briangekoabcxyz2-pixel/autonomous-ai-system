@@ -5,7 +5,7 @@ import os
 import requests
 from groq import Groq
 
-STUDENT_API_URL = "https://oozy-sturdily-heading.ngrok-free.dev"
+STUDENT_API_URL = "https://brianageko1--aaes-student-generate.modal.run"
 
 class TeacherController:
     def __init__(self):

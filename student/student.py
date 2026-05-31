@@ -1,22 +1,37 @@
-# student/student.py
-import anthropic
 import os
+from groq import Groq
+from fastapi import FastAPI
+from pydantic import BaseModel
+import uvicorn
+
+app = FastAPI(title="Student AI")
+
+class PromptRequest(BaseModel):
+    prompt: str
 
 class StudentModel:
-    def __init__(self, api_key: str):
-        self.client = anthropic.Anthropic(api_key=api_key)
+    def __init__(self):
+        self.client = Groq(api_key=os.environ["GROQ_API_KEY"])
 
-    def generate_code(self, prompt: str) -> str:
-        message = self.client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=1024,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+    def generate_code(self, prompt):
+        response = self.client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=1024
         )
-        return message.content[0].text
+        return response.choices[0].message.content
+
+student = StudentModel()
+
+@app.get("/")
+def root():
+    return {"status": "online", "model": "llama-3.3-70b-versatile"}
+
+@app.post("/generate")
+def generate(req: PromptRequest):
+    result = student.generate_code(req.prompt)
+    return {"response": result}
 
 if __name__ == "__main__":
-    student = StudentModel(api_key=os.environ["ANTHROPIC_API_KEY"])
-    output = student.generate_code("Write a Python function to add two numbers.")
-    print(output)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
