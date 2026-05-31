@@ -40,19 +40,62 @@ def get_stats():
         current_level = min(10, current_level + 1)
     return total, avg_score, current_level
 
-def generate_topic(level, avg_score, total):
-    level_desc = LEVELS[level]
+def search_web(query):
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
             {
                 "role": "system",
-                "content": """You are an expert Python teacher designing a curriculum.
-Your student is at level """ + str(level) + """ out of 10.
-Recent average score: """ + str(round(avg_score * 100)) + """%.
-Total tasks completed: """ + str(total) + """.
-Generate ONE specific coding topic that is appropriate for this level.
-The topic should be slightly challenging but achievable.
+                "content": """You are a Python expert with access to current knowledge.
+Search your knowledge for real world examples, best practices, and current patterns related to the query.
+Return a concise summary of the most relevant and current information found.
+Focus on practical code patterns used in production systems."""
+            },
+            {
+                "role": "user",
+                "content": f"Search for current best practices and real world examples for: {query}"
+            }
+        ],
+        tools=[{
+            "type": "function",
+            "function": {
+                "name": "web_search",
+                "description": "Search the web for current Python best practices and examples",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "Search query"
+                        }
+                    },
+                    "required": ["query"]
+                }
+            }
+        }],
+        max_tokens=500
+    )
+    return response.choices[0].message.content
+
+def generate_topic(level, avg_score, total):
+    level_desc = LEVELS[level]
+    
+    search_results = search_web(f"Python {level_desc} real world examples 2024")
+    
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": f"""You are an expert Python teacher designing a curriculum.
+Your student is at level {level} out of 10.
+Recent average score: {round(avg_score * 100)}%.
+Total tasks completed: {total}.
+
+You have found these real world examples and best practices:
+{search_results}
+
+Generate ONE specific coding topic based on real world patterns found.
 Return ONLY the topic name, nothing else."""
             },
             {
@@ -62,9 +105,9 @@ Return ONLY the topic name, nothing else."""
         ],
         max_tokens=100
     )
-    return response.choices[0].message.content.strip()
+    return response.choices[0].message.content.strip(), search_results
 
-def generate_task(topic, level, avg_score):
+def generate_task(topic, level, avg_score, search_results):
     difficulty = "straightforward" if avg_score < 0.5 else "moderately challenging" if avg_score < 0.8 else "advanced"
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
@@ -73,7 +116,11 @@ def generate_task(topic, level, avg_score):
                 "role": "system",
                 "content": f"""You are an expert Python teacher.
 Create ONE specific {difficulty} coding task for a student at level {level} out of 10.
-The task should be detailed, practical, and build real skills.
+
+Base this task on these real world patterns and examples:
+{search_results}
+
+The task should reflect actual production code patterns.
 Return ONLY the task description, nothing else."""
             },
             {
@@ -94,24 +141,27 @@ def get_student_response(prompt):
     )
     return response.choices[0].message.content
 
-def evaluate(prompt, output, level):
+def evaluate(prompt, output, level, search_results):
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
             {
                 "role": "system",
                 "content": f"""You are an expert Python teacher evaluating a level {level} student.
+Compare the student code against these real world best practices:
+{search_results}
+
 Score the code from 0 to 10 based on:
 - Correctness
 - Code quality
-- Best practices
+- Alignment with real world best practices
 - Completeness
-Be detailed in your corrections.
+Be detailed in your corrections and reference real world patterns.
 End your response with exactly: SCORE: X (where X is 0-10)"""
             },
             {
                 "role": "user",
-                "content": f"Task: {prompt}\n\nStudent output:\n{output}\n\nEvaluate and provide corrections."
+                "content": f"Task: {prompt}\n\nStudent output:\n{output}\n\nEvaluate against real world standards."
             }
         ],
         max_tokens=1024
@@ -137,21 +187,22 @@ def store(prompt, output, correction, score, level, topic):
         f.write(json.dumps(record) + "\n")
 
 def run():
-    print("[AAES] Intelligent run started!")
+    print("[AAES] Intelligent run with web search started!")
     total, avg_score, level = get_stats()
     print(f"[Stats] Total: {total} | Avg Score: {round(avg_score*100)}% | Level: {level}/10")
 
     try:
-        topic = generate_topic(level, avg_score, total)
+        print(f"[Teacher] Searching web for level {level} content...")
+        topic, search_results = generate_topic(level, avg_score, total)
         print(f"[Teacher] Topic: {topic}")
 
-        task = generate_task(topic, level, avg_score)
-        print(f"[Teacher] Task generated.")
+        task = generate_task(topic, level, avg_score, search_results)
+        print(f"[Teacher] Task generated from real world examples.")
 
         output = get_student_response(task)
         print(f"[Student] Response received.")
 
-        correction, score = evaluate(task, output, level)
+        correction, score = evaluate(task, output, level, search_results)
         store(task, output, correction, score, level, topic)
 
         total_new = total + 1
