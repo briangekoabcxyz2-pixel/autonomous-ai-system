@@ -26,3 +26,4 @@ coverage/
 # Build outputs
 dist/
 build/
+venv/
