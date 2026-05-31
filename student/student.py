@@ -15,7 +15,7 @@ class StudentModel:
 
     def generate_code(self, prompt):
         response = self.client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
             max_tokens=1024
@@ -26,7 +26,7 @@ student = StudentModel()
 
 @app.get("/")
 def root():
-    return {"status": "online", "model": "llama-3.3-70b-versatile"}
+    return {"status": "online", "model": "llama-3.1-8b-instant"}
 
 @app.post("/generate")
 def generate(req: PromptRequest):

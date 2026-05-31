@@ -5,11 +5,12 @@ import requests
 from pathlib import Path
 from groq import Groq
 
-STUDENT_API_URL = "https://brianageko1--aaes-student-generate.modal.run"
 DATASET_PATH = Path("datasets/training_data.jsonl")
-TRAINING_THRESHOLD = 10
+TRAINING_THRESHOLD = 50
 
-SEARCH_TOPICS = [
+client = Groq(api_key=os.environ["GROQ_API_KEY"])
+
+TOPICS = [
     "python list comprehension examples",
     "python error handling best practices",
     "python file handling examples",
@@ -19,52 +20,8 @@ SEARCH_TOPICS = [
     "python API requests tutorial",
     "python decorators explained",
     "python generators examples",
-    "python unit testing pytest",
+    "python unit testing with pytest",
 ]
-
-client = Groq(api_key=os.environ["GROQ_API_KEY"])
-
-def research_topic(topic):
-    print(f"[Teacher] Researching: {topic}")
-    try:
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You are a Python expert. Summarize key concepts and provide 2-3 code examples for the given topic. Be concise."},
-                {"role": "user", "content": f"Explain and show examples for: {topic}"}
-            ],
-            max_tokens=500
-        )
-        print(f"[Teacher] Research complete.")
-        return response.choices[0].message.content
-    except Exception as e:
-        if "429" in str(e) or "rate_limit" in str(e):
-            print("[Rate Limit] Waiting 10 minutes...")
-            time.sleep(600)
-            return None
-        print(f"[ERROR] Research failed: {e}")
-        return None
-
-def generate_task(topic, content):
-    print("[Teacher] Generating task...")
-    try:
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You are an expert Python teacher. Based on the content provided, create ONE specific Python coding task for a student. Return ONLY the task description, nothing else. Keep it under 2 sentences."},
-                {"role": "user", "content": f"Topic: {topic}\n\nContent:\n{content}\n\nCreate one coding task:"}
-            ],
-            max_tokens=100
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        if "429" in str(e) or "rate_limit" in str(e):
-            print("[Rate Limit] Waiting 10 minutes...")
-            time.sleep(600)
-            return None
-        print(f"[ERROR] Task generation failed: {e}")
-        return None
-
 
 def post_activity(message):
     try:
@@ -74,34 +31,48 @@ def post_activity(message):
 
 def get_student_response(prompt):
     try:
-        response = requests.post(STUDENT_API_URL, json={"prompt": prompt}, timeout=120)
-        return response.json()["response"]
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=1024
+        )
+        return response.choices[0].message.content
     except Exception as e:
         print(f"[ERROR] Student failed: {e}")
         return None
 
+def research_topic(topic):
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": "You are an expert Python teacher. Research the given topic and generate one specific coding task for a student."},
+            {"role": "user", "content": f"Research this topic and give me ONE specific Python coding task: {topic}"}
+        ],
+        max_tokens=300
+    )
+    return response.choices[0].message.content
+
 def evaluate(prompt, output):
-    try:
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You are an expert Python teacher. Evaluate the student code and provide corrections."},
-                {"role": "user", "content": f"Task: {prompt}\n\nStudent output:\n{output}\n\nEvaluate and correct."}
-            ]
-        )
-        correction = response.choices[0].message.content
-        score = 1 if "error" not in output.lower() else 0
-        return correction, score
-    except Exception as e:
-        if "429" in str(e) or "rate_limit" in str(e):
-            print("[Rate Limit] Waiting 10 minutes...")
-            time.sleep(600)
-            return "Rate limit - skipped", 0
-        print(f"[ERROR] Evaluate failed: {e}")
-        return "Error", 0
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": "You are an expert Python teacher. Evaluate the student code and provide detailed corrections."},
+            {"role": "user", "content": f"Task: {prompt}\n\nStudent output:\n{output}\n\nEvaluate and correct."}
+        ],
+        max_tokens=1024
+    )
+    correction = response.choices[0].message.content
+    score = 1 if "error" not in output.lower() else 0
+    return correction, score
 
 def store(prompt, output, correction, score):
-    record = {"prompt": prompt, "student_output": output, "teacher_correction": correction, "evaluation_score": score}
+    record = {
+        "prompt": prompt,
+        "student_output": output,
+        "teacher_correction": correction,
+        "evaluation_score": score
+    }
     with open(DATASET_PATH, "a") as f:
         f.write(json.dumps(record) + "\n")
 
@@ -115,38 +86,49 @@ def run_loop():
     print("[AAES] Autonomous loop started!")
     topic_index = 0
     last_trained_at = count_records()
+
     while True:
-        topic = SEARCH_TOPICS[topic_index % len(SEARCH_TOPICS)]
-        topic_index += 1
+        try:
+            topic = TOPICS[topic_index % len(TOPICS)]
+            topic_index += 1
 
-        content = research_topic(topic)
-        if not content:
-            continue
+            print(f"[Teacher] Researching: {topic}")
+            post_activity(f"Researching: {topic}")
 
-        prompt = generate_task(topic, content)
-        if not prompt:
-            continue
+            prompt = research_topic(topic)
+            print(f"[Teacher] Task generated.")
+            post_activity(f"Task: {prompt[:80]}...")
 
-        print(f"\n[Teacher] Task: {prompt}")
-        output = get_student_response(prompt)
-        if not output:
-            time.sleep(5)
-            continue
+            output = get_student_response(prompt)
+            if not output:
+                time.sleep(10)
+                continue
 
-        print(f"[Student] Response received.")
-        post_activity(f"Student responded. Evaluating...")
-        correction, score = evaluate(prompt, output)
-        store(prompt, output, correction, score)
+            print(f"[Student] Response received.")
+            post_activity(f"Student responded. Evaluating...")
 
-        total = count_records()
-        print(f"[Dataset] Total records: {total} | Score: {score}")
-        post_activity(f"Stored record #{total}. Score: {score}")
+            correction, score = evaluate(prompt, output)
+            store(prompt, output, correction, score)
 
-        if total - last_trained_at >= TRAINING_THRESHOLD:
-            print(f"[Training] Dataset grew by {TRAINING_THRESHOLD}. Time to fine-tune in Colab!")
-            last_trained_at = total
+            total = count_records()
+            print(f"[Dataset] Total records: {total} | Score: {score}")
+            post_activity(f"Stored record #{total}. Score: {score}")
 
-        time.sleep(15)
+            if total - last_trained_at >= TRAINING_THRESHOLD:
+                print(f"[Training] {TRAINING_THRESHOLD} new examples — time to fine-tune!")
+                post_activity(f"Training triggered! {total} total records.")
+                last_trained_at = total
+
+            time.sleep(15)
+
+        except Exception as e:
+            if "rate_limit" in str(e).lower() or "429" in str(e):
+                print(f"[Rate Limit] Waiting 60 seconds...")
+                post_activity("Rate limit hit. Waiting 60s...")
+                time.sleep(60)
+            else:
+                print(f"[ERROR] {e}")
+                time.sleep(10)
 
 if __name__ == "__main__":
     run_loop()
