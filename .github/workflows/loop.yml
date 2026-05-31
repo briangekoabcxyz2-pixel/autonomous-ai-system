@@ -2,13 +2,13 @@ name: AAES Autonomous Loop
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 jobs:
   run-loop:
     runs-on: ubuntu-latest
-    timeout-minutes: 9
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v3
@@ -24,13 +24,31 @@ jobs:
       - name: Run autonomous loop
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: timeout 480 python3 autonomous_loop_single.py || true
+        run: timeout 1200 python3 autonomous_loop_single.py || true
+
+      - name: Check if fine-tuning needed
+        run: |
+          count=$(wc -l < datasets/training_data.jsonl 2>/dev/null || echo 0)
+          echo "Total records: $count"
+          if [ $((count % 500)) -eq 0 ] && [ $count -gt 0 ]; then
+            echo "FINETUNE=true" >> $GITHUB_ENV
+            echo "Fine-tuning triggered at $count records!"
+          else
+            echo "FINETUNE=false" >> $GITHUB_ENV
+          fi
+
+      - name: Fine-tune Student
+        if: env.FINETUNE == 'true'
+        run: |
+          pip install torch transformers datasets trl peft accelerate -q
+          python3 finetune.py || true
 
       - name: Save training data and keep alive
         run: |
           git config user.email "aaes@auto.com"
           git config user.name "AAES Bot"
           git add datasets/training_data.jsonl || true
+          git add checkpoints/ || true
           echo "$(date)" >> .keepalive
           git add .keepalive
           git diff --staged --quiet || git commit -m "Auto: training record $(date +%Y%m%d-%H%M)"
