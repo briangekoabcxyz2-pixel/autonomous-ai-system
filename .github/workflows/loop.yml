@@ -1,0 +1,27 @@
+name: AAES Autonomous Loop
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  run-loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install groq requests
+
+      - name: Run autonomous loop
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: timeout 480 python3 autonomous_loop_single.py || true

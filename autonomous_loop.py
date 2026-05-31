@@ -11,16 +11,16 @@ TRAINING_THRESHOLD = 50
 client = Groq(api_key=os.environ["GROQ_API_KEY"])
 
 TOPICS = [
-    "python list comprehension examples",
-    "python error handling best practices",
-    "python file handling examples",
-    "python class and objects tutorial",
-    "python recursion examples",
-    "python sorting algorithms",
-    "python API requests tutorial",
-    "python decorators explained",
-    "python generators examples",
-    "python unit testing with pytest",
+    "Build a complete REST API with FastAPI including JWT authentication, database models with SQLAlchemy, input validation with Pydantic, error handling middleware, and unit tests with pytest",
+    "Build a Python web scraper that handles pagination, rate limiting, retry logic, proxy rotation, data cleaning, and saves results to both CSV and SQLite database",
+    "Build a Python CLI tool with argparse that manages a local task database with CRUD operations, priority levels, due dates, filtering, and colorized terminal output",
+    "Build a Python data pipeline that reads from multiple CSV files, cleans and validates data, performs aggregations, detects anomalies, and generates a summary report",
+    "Build a Python class hierarchy for a banking system with accounts, transactions, interest calculation, overdraft protection, and full test coverage",
+    "Build a Python async web crawler using aiohttp that crawls multiple URLs concurrently, extracts structured data, handles errors gracefully, and respects robots.txt",
+    "Build a Python caching system with TTL expiry, LRU eviction, thread safety, statistics tracking, and both in-memory and file-based backends",
+    "Build a Python event system with publishers, subscribers, async event handling, error isolation, event filtering, and a complete working example",
+    "Build a complete Python package with proper structure, setup.py, documentation, logging, configuration management, and example usage",
+    "Build a Python monitoring system that tracks CPU, memory, disk usage, sends alerts when thresholds exceeded, logs to file, and generates daily reports",
 ]
 
 def post_activity(message):
