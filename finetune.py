@@ -11,24 +11,25 @@ CHECKPOINT_PATH = Path("checkpoints/latest")
 
 print("[Fine-tune] Starting automatic fine-tuning...")
 
-records = []
+all_records = []
 with open(DATASET_PATH) as f:
     for line in f:
         try:
-            records.append(json.loads(line))
+            all_records.append(json.loads(line))
         except:
             pass
 
-print(f"[Fine-tune] Loaded {len(records)} records")
+records = all_records[-300:]
+print(f"[Fine-tune] Using latest {len(records)} of {len(all_records)} total records")
 
 dataset = Dataset.from_list([
-    {"text": f"### Task:\n{r['prompt']}\n\n### Solution:\n{r['teacher_correction']}"}
+    {"text": f"### Task:\n{r['prompt']}\n\n### Solution:\n{r.get('teacher_correction', r.get('correction', ''))}"}
     for r in records
 ])
 
-model_name = "unsloth/Llama-3.2-3B-Instruct" if os.path.exists("checkpoints/latest") else "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-
+model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 print(f"[Fine-tune] Loading model: {model_name}")
+
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 tokenizer.pad_token = tokenizer.eos_token
 
