@@ -1,10 +1,11 @@
 {
   "topics_covered": [
     "**Regular Expressions**",
-    "**Data Persistence with Pickling**"
+    "**Data Persistence with Pickling**",
+    "**Data Structures with Dicts and Lists**"
   ],
   "weak_areas": [
     "**Regular Expressions**"
   ],
-  "total_runs": 2
+  "total_runs": 3
 }
