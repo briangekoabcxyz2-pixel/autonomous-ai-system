@@ -2,10 +2,11 @@
   "topics_covered": [
     "**Regular Expressions**",
     "**Data Persistence with Pickling**",
-    "**Data Structures with Dicts and Lists**"
+    "**Data Structures with Dicts and Lists**",
+    "Decorators for Enhanced Error Handling and Code Reusability"
   ],
   "weak_areas": [
     "**Regular Expressions**"
   ],
-  "total_runs": 3
+  "total_runs": 4
 }
