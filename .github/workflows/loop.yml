@@ -48,6 +48,7 @@ jobs:
           git config user.email "aaes@auto.com"
           git config user.name "AAES Bot"
           git add datasets/training_data.jsonl || true
+          git add memory/teacher_memory.json || true
           git add checkpoints/model.tar.gz || true
           echo "$(date)" >> .keepalive
           git add .keepalive

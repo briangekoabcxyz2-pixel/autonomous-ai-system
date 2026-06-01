@@ -3,6 +3,7 @@ import json
 import random
 from pathlib import Path
 from groq import Groq
+from memory_store import get_memory_summary, add_topic
 
 DATASET_PATH = Path("datasets/training_data.jsonl")
 client = Groq(api_key=os.environ["GROQ_API_KEY"])
@@ -80,6 +81,7 @@ Focus on practical code patterns used in production systems."""
 def generate_topic(level, avg_score, total):
     level_desc = LEVELS[level]
     
+    memory_summary = get_memory_summary()
     search_results = search_web(f"Python {level_desc} real world examples 2024")
     
     response = client.chat.completions.create(
@@ -96,6 +98,7 @@ You have found these real world examples and best practices:
 {search_results}
 
 Generate ONE specific coding topic based on real world patterns found.
+Avoid topics already covered: {memory_summary}
 Return ONLY the topic name, nothing else."""
             },
             {
@@ -213,7 +216,8 @@ def run():
         else:
             print(f"[Progress] Student needs more practice at level {level}.")
 
-        print("[AAES] Run complete!")
+        add_topic(topic, score)
+        print("[AAES] Run complete! Memory updated.")
 
     except Exception as e:
         if "429" in str(e) or "rate_limit" in str(e).lower():
