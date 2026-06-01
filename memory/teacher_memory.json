@@ -1,9 +1,10 @@
 {
   "topics_covered": [
-    "**Regular Expressions**"
+    "**Regular Expressions**",
+    "**Data Persistence with Pickling**"
   ],
   "weak_areas": [
     "**Regular Expressions**"
   ],
-  "total_runs": 1
+  "total_runs": 2
 }
