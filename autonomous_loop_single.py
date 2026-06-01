@@ -1,9 +1,16 @@
 import os
 import json
-import random
 from pathlib import Path
 from groq import Groq
-from memory_store import get_memory_summary, add_topic
+
+try:
+    from memory_store import get_memory_summary, add_topic
+    MEMORY_ENABLED = True
+except Exception as e:
+    print(f"[Memory] Memory system unavailable: {e}")
+    MEMORY_ENABLED = False
+    def get_memory_summary(): return ""
+    def add_topic(t, s): pass
 
 DATASET_PATH = Path("datasets/training_data.jsonl")
 client = Groq(api_key=os.environ["GROQ_API_KEY"])
@@ -23,6 +30,7 @@ LEVELS = {
 
 def get_stats():
     if not DATASET_PATH.exists():
+        DATASET_PATH.parent.mkdir(parents=True, exist_ok=True)
         return 0, 0, 1
     records = []
     with open(DATASET_PATH) as f:
@@ -42,69 +50,29 @@ def get_stats():
     return total, avg_score, current_level
 
 def search_web(query):
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "system",
-                "content": """You are a Python expert with access to current knowledge.
-Search your knowledge for real world examples, best practices, and current patterns related to the query.
-Return a concise summary of the most relevant and current information found.
-Focus on practical code patterns used in production systems."""
-            },
-            {
-                "role": "user",
-                "content": f"Search for current best practices and real world examples for: {query}"
-            }
-        ],
-        tools=[{
-            "type": "function",
-            "function": {
-                "name": "web_search",
-                "description": "Search the web for current Python best practices and examples",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "query": {
-                            "type": "string",
-                            "description": "Search query"
-                        }
-                    },
-                    "required": ["query"]
-                }
-            }
-        }],
-        max_tokens=500
-    )
-    return response.choices[0].message.content
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are a Python expert. Search your knowledge for real world examples and best practices. Return a concise summary of practical production code patterns."},
+                {"role": "user", "content": f"Search for current best practices and real world examples for: {query}"}
+            ],
+            max_tokens=500
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"[Search] Web search failed: {e}")
+        return "Focus on practical Python best practices."
 
 def generate_topic(level, avg_score, total):
     level_desc = LEVELS[level]
-    
-    memory_summary = get_memory_summary()
+    memory_summary = get_memory_summary() if MEMORY_ENABLED else ""
     search_results = search_web(f"Python {level_desc} real world examples 2024")
-    
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
-            {
-                "role": "system",
-                "content": f"""You are an expert Python teacher designing a curriculum.
-Your student is at level {level} out of 10.
-Recent average score: {round(avg_score * 100)}%.
-Total tasks completed: {total}.
-
-You have found these real world examples and best practices:
-{search_results}
-
-Generate ONE specific coding topic based on real world patterns found.
-Avoid topics already covered: {memory_summary}
-Return ONLY the topic name, nothing else."""
-            },
-            {
-                "role": "user",
-                "content": f"Generate one specific Python coding topic for level {level}: {level_desc}"
-            }
+            {"role": "system", "content": f"You are an expert Python teacher. Student is at level {level}/10. Average score: {round(avg_score*100)}%. Tasks completed: {total}. Real world patterns found: {search_results}. Memory of past lessons: {memory_summary}. Generate ONE specific coding topic. Avoid covered topics. Return ONLY the topic name."},
+            {"role": "user", "content": f"Generate one specific Python coding topic for level {level}: {level_desc}"}
         ],
         max_tokens=100
     )
@@ -115,21 +83,8 @@ def generate_task(topic, level, avg_score, search_results):
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
-            {
-                "role": "system",
-                "content": f"""You are an expert Python teacher.
-Create ONE specific {difficulty} coding task for a student at level {level} out of 10.
-
-Base this task on these real world patterns and examples:
-{search_results}
-
-The task should reflect actual production code patterns.
-Return ONLY the task description, nothing else."""
-            },
-            {
-                "role": "user",
-                "content": f"Create a {difficulty} Python coding task about: {topic}"
-            }
+            {"role": "system", "content": f"You are an expert Python teacher. Create ONE specific {difficulty} coding task for level {level}/10. Base it on these real world patterns: {search_results}. Return ONLY the task description."},
+            {"role": "user", "content": f"Create a {difficulty} Python coding task about: {topic}"}
         ],
         max_tokens=400
     )
@@ -148,24 +103,8 @@ def evaluate(prompt, output, level, search_results):
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
-            {
-                "role": "system",
-                "content": f"""You are an expert Python teacher evaluating a level {level} student.
-Compare the student code against these real world best practices:
-{search_results}
-
-Score the code from 0 to 10 based on:
-- Correctness
-- Code quality
-- Alignment with real world best practices
-- Completeness
-Be detailed in your corrections and reference real world patterns.
-End your response with exactly: SCORE: X (where X is 0-10)"""
-            },
-            {
-                "role": "user",
-                "content": f"Task: {prompt}\n\nStudent output:\n{output}\n\nEvaluate against real world standards."
-            }
+            {"role": "system", "content": f"You are an expert Python teacher evaluating a level {level} student. Compare against these real world best practices: {search_results}. Score 0-10 on correctness, code quality, best practices, completeness. End with exactly: SCORE: X"},
+            {"role": "user", "content": f"Task: {prompt}\n\nStudent output:\n{output}\n\nEvaluate against real world standards."}
         ],
         max_tokens=1024
     )
@@ -178,14 +117,8 @@ End your response with exactly: SCORE: X (where X is 0-10)"""
     return correction, score
 
 def store(prompt, output, correction, score, level, topic):
-    record = {
-        "prompt": prompt,
-        "student_output": output,
-        "teacher_correction": correction,
-        "evaluation_score": score,
-        "level": level,
-        "topic": topic,
-    }
+    DATASET_PATH.parent.mkdir(parents=True, exist_ok=True)
+    record = {"prompt": prompt, "student_output": output, "teacher_correction": correction, "evaluation_score": score, "level": level, "topic": topic}
     with open(DATASET_PATH, "a") as f:
         f.write(json.dumps(record) + "\n")
 
@@ -193,32 +126,25 @@ def run():
     print("[AAES] Intelligent run with web search started!")
     total, avg_score, level = get_stats()
     print(f"[Stats] Total: {total} | Avg Score: {round(avg_score*100)}% | Level: {level}/10")
-
     try:
         print(f"[Teacher] Searching web for level {level} content...")
         topic, search_results = generate_topic(level, avg_score, total)
         print(f"[Teacher] Topic: {topic}")
-
         task = generate_task(topic, level, avg_score, search_results)
         print(f"[Teacher] Task generated from real world examples.")
-
         output = get_student_response(task)
         print(f"[Student] Response received.")
-
         correction, score = evaluate(task, output, level, search_results)
         store(task, output, correction, score, level, topic)
-
+        add_topic(topic, score)
         total_new = total + 1
         print(f"[Dataset] Total: {total_new} | Score: {round(score*10)}/10 | Level: {level}/10")
-
+        print(f"[Memory] Topic saved: {topic}")
         if score >= 0.8:
             print(f"[Progress] Student performing well at level {level}!")
         else:
             print(f"[Progress] Student needs more practice at level {level}.")
-
-        add_topic(topic, score)
-        print("[AAES] Run complete! Memory updated.")
-
+        print("[AAES] Run complete!")
     except Exception as e:
         if "429" in str(e) or "rate_limit" in str(e).lower():
             print("[Rate Limit] Daily token limit reached. Exiting gracefully.")
