@@ -3,10 +3,12 @@
     "**Regular Expressions**",
     "**Data Persistence with Pickling**",
     "**Data Structures with Dicts and Lists**",
-    "Decorators for Enhanced Error Handling and Code Reusability"
+    "Decorators for Enhanced Error Handling and Code Reusability",
+    "**Web Scraping with BeautifulSoup**"
   ],
   "weak_areas": [
-    "**Regular Expressions**"
+    "**Regular Expressions**",
+    "**Web Scraping with BeautifulSoup**"
   ],
-  "total_runs": 4
+  "total_runs": 5
 }
