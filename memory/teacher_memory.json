@@ -9,14 +9,16 @@
     "Working with CSV and JSON Files",
     "Pathlib for File System Operations",
     "Regular Expressions for Input Validation",
-    "Logging and Error Reporting with Python's Logging Module"
+    "Logging and Error Reporting with Python's Logging Module",
+    "Configuring and Using Python's argparse Module for Command-Line Argument Validation"
   ],
   "weak_areas": [
     "**Regular Expressions**",
     "**Web Scraping with BeautifulSoup**",
     "Working with CSV and JSON Files",
     "Pathlib for File System Operations",
-    "Regular Expressions for Input Validation"
+    "Regular Expressions for Input Validation",
+    "Configuring and Using Python's argparse Module for Command-Line Argument Validation"
   ],
-  "total_runs": 10
+  "total_runs": 11
 }
