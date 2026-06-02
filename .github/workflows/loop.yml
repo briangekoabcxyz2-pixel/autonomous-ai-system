@@ -2,7 +2,7 @@ name: AAES Autonomous Loop
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -12,7 +12,7 @@ concurrency:
 jobs:
   run-loop:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 360
 
     steps:
       - uses: actions/checkout@v3
@@ -25,19 +25,19 @@ jobs:
       - name: Install dependencies
         run: pip install groq requests google-genai
 
-      - name: Run autonomous loop
+      - name: Run batch training
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GROQ_API_KEY_2: ${{ secrets.GROQ_API_KEY_2 }}
           GROQ_API_KEY_3: ${{ secrets.GROQ_API_KEY_3 }}
-        run: timeout 1200 python3 autonomous_loop_single.py || true
+        run: python3 autonomous_loop_batch.py
 
       - name: Check if fine-tuning needed
         run: |
           count=$(wc -l < datasets/training_data.jsonl 2>/dev/null || echo 0)
           echo "Total records: $count"
-          if [ $count -ge 500 ] && [ $((count % 500)) -le 5 ]; then
+          if [ $count -ge 500 ] && [ $((count % 500)) -le 10 ]; then
             echo "FINETUNE=true" >> $GITHUB_ENV
             echo "Fine-tuning triggered at $count records!"
           else
