@@ -176,4 +176,6 @@ def run():
         raise
 
 if __name__ == "__main__":
-    run()
+    for i in range(10):
+        print(f"\n[AAES] Starting run {i+1} of 10...")
+        run()
