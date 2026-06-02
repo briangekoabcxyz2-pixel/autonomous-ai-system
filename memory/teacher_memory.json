@@ -7,13 +7,15 @@
     "**Web Scraping with BeautifulSoup**",
     "Exception Handling with Try-Except Blocks",
     "Working with CSV and JSON Files",
-    "Pathlib for File System Operations"
+    "Pathlib for File System Operations",
+    "Regular Expressions for Input Validation"
   ],
   "weak_areas": [
     "**Regular Expressions**",
     "**Web Scraping with BeautifulSoup**",
     "Working with CSV and JSON Files",
-    "Pathlib for File System Operations"
+    "Pathlib for File System Operations",
+    "Regular Expressions for Input Validation"
   ],
-  "total_runs": 8
+  "total_runs": 9
 }
