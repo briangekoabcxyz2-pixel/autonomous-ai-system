@@ -12,7 +12,17 @@
     "Logging and Error Reporting with Python's Logging Module",
     "Configuring and Using Python's argparse Module for Command-Line Argument Validation",
     "Try-Except Block and Exception Handling Best Practices",
-    "Context Managers for Resource Management and Error Handling"
+    "Context Managers for Resource Management and Error Handling",
+    "JSON File Handling and Error Handling in Python",
+    "File Input/Output Error Handling with Python's `pathlib` Module",
+    "Logging Exceptions and Errors in Python Using the `logging` Module",
+    "Regular Expression for Input Validation in Python",
+    "Try-Except Block for Custom Exception Handling",
+    "Context Managers for Resource Management and Error Handling in Python",
+    "Assert Statements for Defensive Programming in Python",
+    "Buffering and Flush in File Operations for Error Handling",
+    "Path Parameters and Query Parameters in FastAPI Routing",
+    "Request Body and JSON Data Handling in FastAPI"
   ],
   "weak_areas": [
     "**Regular Expressions**",
@@ -22,7 +32,12 @@
     "Regular Expressions for Input Validation",
     "Configuring and Using Python's argparse Module for Command-Line Argument Validation",
     "Try-Except Block and Exception Handling Best Practices",
-    "Context Managers for Resource Management and Error Handling"
+    "Context Managers for Resource Management and Error Handling",
+    "Logging Exceptions and Errors in Python Using the `logging` Module",
+    "Regular Expression for Input Validation in Python",
+    "Try-Except Block for Custom Exception Handling",
+    "Assert Statements for Defensive Programming in Python",
+    "Buffering and Flush in File Operations for Error Handling"
   ],
-  "total_runs": 13
+  "total_runs": 23
 }
