@@ -5,11 +5,13 @@
     "**Data Structures with Dicts and Lists**",
     "Decorators for Enhanced Error Handling and Code Reusability",
     "**Web Scraping with BeautifulSoup**",
-    "Exception Handling with Try-Except Blocks"
+    "Exception Handling with Try-Except Blocks",
+    "Working with CSV and JSON Files"
   ],
   "weak_areas": [
     "**Regular Expressions**",
-    "**Web Scraping with BeautifulSoup**"
+    "**Web Scraping with BeautifulSoup**",
+    "Working with CSV and JSON Files"
   ],
-  "total_runs": 6
+  "total_runs": 7
 }
