@@ -15,7 +15,7 @@ except Exception as e:
     def add_topic(t, s): pass
 
 DATASET_PATH = Path("datasets/training_data.jsonl")
-DAILY_TARGET = 150
+DAILY_TARGET = 100
 MAX_RUNTIME_SECONDS = 20000  # ~5.5 hours, safe under GitHub 6hr limit
 write_lock = threading.Lock()
 stats_lock = threading.Lock()
