@@ -22,7 +22,17 @@
     "Assert Statements for Defensive Programming in Python",
     "Buffering and Flush in File Operations for Error Handling",
     "Path Parameters and Query Parameters in FastAPI Routing",
-    "Request Body and JSON Data Handling in FastAPI"
+    "Request Body and JSON Data Handling in FastAPI",
+    "API Documentation with OpenAPI and Swagger in FastAPI",
+    "Error Handling and Middleware in FastAPI",
+    "Asynchronous Programming with FastAPI and asyncio",
+    "Authentication and Authorization in FastAPI using JWT Tokens",
+    "Query Parameter Validation and Parsing in FastAPI",
+    "HTTP Request and Response Body Parsing with Pydantic in FastAPI",
+    "WebSockets and Real-time Communication in FastAPI",
+    "API Versioning in FastAPI with Prefixes and Tags",
+    "Asynchronous Background Tasks in FastAPI using Celery or asyncio",
+    "Database Integration with FastAPI using SQLAlchemy or asyncpg"
   ],
   "weak_areas": [
     "**Regular Expressions**",
@@ -37,7 +47,11 @@
     "Regular Expression for Input Validation in Python",
     "Try-Except Block for Custom Exception Handling",
     "Assert Statements for Defensive Programming in Python",
-    "Buffering and Flush in File Operations for Error Handling"
+    "Buffering and Flush in File Operations for Error Handling",
+    "API Documentation with OpenAPI and Swagger in FastAPI",
+    "Error Handling and Middleware in FastAPI",
+    "WebSockets and Real-time Communication in FastAPI",
+    "Database Integration with FastAPI using SQLAlchemy or asyncpg"
   ],
-  "total_runs": 23
+  "total_runs": 33
 }
