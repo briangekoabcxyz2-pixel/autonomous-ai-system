@@ -24,6 +24,7 @@ jobs:
       - name: Run autonomous loop
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: timeout 1200 python3 autonomous_loop_single.py || true
 
       - name: Check if fine-tuning needed
