@@ -1,7 +1,6 @@
 import os
 import json
 from pathlib import Path
-
 from groq import Groq
 
 try:
@@ -15,22 +14,14 @@ except Exception as e:
 
 DATASET_PATH = Path("datasets/training_data.jsonl")
 
-gemini_model = None
-if GEMINI_AVAILABLE and os.environ.get("GEMINI_API_KEY"):
-    gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-    gemini_model = gemini_client
-    print("[AI] Gemini Flash loaded as primary")
-else:
-    print("[AI] Gemini unavailable, using Groq only")
-
 # Load all available Groq keys for rotation
 groq_keys = []
 for key_name in ["GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_3"]:
     key = os.environ.get(key_name)
     if key:
         groq_keys.append(key)
+
 groq_key_index = [0]
-groq_client = Groq(api_key=groq_keys[0])
 print(f"[AI] Groq loaded with {len(groq_keys)} API keys for rotation")
 
 def get_groq_client():
@@ -57,12 +48,6 @@ LEVELS = {
 }
 
 def ask_ai(prompt, max_tokens=1024):
-    if gemini_model:
-        try:
-            response = gemini_model.models.generate_content(model="gemini-2.0-flash-lite", contents=prompt)
-            return response.text
-        except Exception as e:
-            print(f"[Gemini] Failed: {e}, switching to Groq...")
     for attempt in range(len(groq_keys)):
         try:
             client = get_groq_client()
@@ -81,25 +66,23 @@ def ask_ai(prompt, max_tokens=1024):
     exit(0)
 
 def ask_student(prompt):
-    try:
-        response = groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=1024
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        if "429" in str(e) or "rate_limit" in str(e).lower():
-            if gemini_model:
-                try:
-                    response = gemini_model.generate_content(prompt)
-                    return response.text
-                except:
-                    pass
-            print("[Rate Limit] All limits hit. Exiting gracefully.")
-            exit(0)
-        raise
+    for attempt in range(len(groq_keys)):
+        try:
+            client = get_groq_client()
+            response = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7,
+                max_tokens=1024
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            if "429" in str(e) or "rate_limit" in str(e).lower():
+                rotate_groq_key()
+            else:
+                raise
+    print("[Rate Limit] All Groq keys exhausted. Exiting gracefully.")
+    exit(0)
 
 def get_stats():
     if not DATASET_PATH.exists():
@@ -163,7 +146,7 @@ def store(prompt, output, correction, score, level, topic):
         f.write(json.dumps(record) + "\n")
 
 def run():
-    print("[AAES] Intelligent run started - Gemini primary, Groq fallback!")
+    print("[AAES] Intelligent run started - 3 Groq keys rotating!")
     total, avg_score, level = get_stats()
     print(f"[Stats] Total: {total} | Avg Score: {round(avg_score*100)}% | Level: {level}/10")
     try:
