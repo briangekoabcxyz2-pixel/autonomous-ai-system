@@ -6,12 +6,14 @@
     "Decorators for Enhanced Error Handling and Code Reusability",
     "**Web Scraping with BeautifulSoup**",
     "Exception Handling with Try-Except Blocks",
-    "Working with CSV and JSON Files"
+    "Working with CSV and JSON Files",
+    "Pathlib for File System Operations"
   ],
   "weak_areas": [
     "**Regular Expressions**",
     "**Web Scraping with BeautifulSoup**",
-    "Working with CSV and JSON Files"
+    "Working with CSV and JSON Files",
+    "Pathlib for File System Operations"
   ],
-  "total_runs": 7
+  "total_runs": 8
 }
