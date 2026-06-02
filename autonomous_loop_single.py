@@ -2,13 +2,6 @@ import os
 import json
 from pathlib import Path
 
-try:
-    from google import genai
-    GEMINI_AVAILABLE = True
-except Exception as e:
-    print(f'[Gemini Import Error] {e}')
-    GEMINI_AVAILABLE = False
-
 from groq import Groq
 
 try:
@@ -30,8 +23,25 @@ if GEMINI_AVAILABLE and os.environ.get("GEMINI_API_KEY"):
 else:
     print("[AI] Gemini unavailable, using Groq only")
 
-groq_client = Groq(api_key=os.environ["GROQ_API_KEY"])
-print("[AI] Groq loaded as fallback")
+# Load all available Groq keys for rotation
+groq_keys = []
+for key_name in ["GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_3"]:
+    key = os.environ.get(key_name)
+    if key:
+        groq_keys.append(key)
+groq_key_index = [0]
+groq_client = Groq(api_key=groq_keys[0])
+print(f"[AI] Groq loaded with {len(groq_keys)} API keys for rotation")
+
+def get_groq_client():
+    return Groq(api_key=groq_keys[groq_key_index[0] % len(groq_keys)])
+
+def rotate_groq_key():
+    groq_key_index[0] += 1
+    if groq_key_index[0] >= len(groq_keys):
+        print("[Rate Limit] All Groq keys exhausted. Exiting gracefully.")
+        exit(0)
+    print(f"[Rotation] Switching to Groq key {groq_key_index[0] + 1} of {len(groq_keys)}")
 
 LEVELS = {
     1: "basic Python functions, variables, loops, and conditionals",
@@ -53,18 +63,22 @@ def ask_ai(prompt, max_tokens=1024):
             return response.text
         except Exception as e:
             print(f"[Gemini] Failed: {e}, switching to Groq...")
-    try:
-        response = groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=max_tokens
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        if "429" in str(e) or "rate_limit" in str(e).lower():
-            print("[Rate Limit] Both limits hit. Exiting gracefully.")
-            exit(0)
-        raise
+    for attempt in range(len(groq_keys)):
+        try:
+            client = get_groq_client()
+            response = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_tokens
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            if "429" in str(e) or "rate_limit" in str(e).lower():
+                rotate_groq_key()
+            else:
+                raise
+    print("[Rate Limit] All Groq keys exhausted. Exiting gracefully.")
+    exit(0)
 
 def ask_student(prompt):
     try:
