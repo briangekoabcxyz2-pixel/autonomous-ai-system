@@ -8,7 +8,8 @@
     "Exception Handling with Try-Except Blocks",
     "Working with CSV and JSON Files",
     "Pathlib for File System Operations",
-    "Regular Expressions for Input Validation"
+    "Regular Expressions for Input Validation",
+    "Logging and Error Reporting with Python's Logging Module"
   ],
   "weak_areas": [
     "**Regular Expressions**",
@@ -17,5 +18,5 @@
     "Pathlib for File System Operations",
     "Regular Expressions for Input Validation"
   ],
-  "total_runs": 9
+  "total_runs": 10
 }
