@@ -49,7 +49,7 @@ LEVELS = {
 def ask_ai(prompt, max_tokens=1024):
     if gemini_model:
         try:
-            response = gemini_model.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+            response = gemini_model.models.generate_content(model="gemini-2.0-flash-lite", contents=prompt)
             return response.text
         except Exception as e:
             print(f"[Gemini] Failed: {e}, switching to Groq...")
