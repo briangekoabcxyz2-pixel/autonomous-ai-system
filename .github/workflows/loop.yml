@@ -2,7 +2,7 @@ name: AAES Autonomous Loop
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install groq requests
+        run: pip install groq requests google-generativeai
 
       - name: Run autonomous loop
         env:
