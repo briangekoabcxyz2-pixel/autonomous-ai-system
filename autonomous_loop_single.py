@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 try:
-    import google.generativeai as genai
+    from google import genai
     GEMINI_AVAILABLE = True
 except:
     GEMINI_AVAILABLE = False
@@ -23,8 +23,8 @@ DATASET_PATH = Path("datasets/training_data.jsonl")
 
 gemini_model = None
 if GEMINI_AVAILABLE and os.environ.get("GEMINI_API_KEY"):
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+    gemini_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    gemini_model = gemini_client
     print("[AI] Gemini Flash loaded as primary")
 else:
     print("[AI] Gemini unavailable, using Groq only")
@@ -48,7 +48,7 @@ LEVELS = {
 def ask_ai(prompt, max_tokens=1024):
     if gemini_model:
         try:
-            response = gemini_model.generate_content(prompt)
+            response = gemini_model.models.generate_content(model="gemini-2.0-flash", contents=prompt)
             return response.text
         except Exception as e:
             print(f"[Gemini] Failed: {e}, switching to Groq...")
