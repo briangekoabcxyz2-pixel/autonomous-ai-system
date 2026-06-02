@@ -5,7 +5,8 @@ from pathlib import Path
 try:
     from google import genai
     GEMINI_AVAILABLE = True
-except:
+except Exception as e:
+    print(f'[Gemini Import Error] {e}')
     GEMINI_AVAILABLE = False
 
 from groq import Groq
