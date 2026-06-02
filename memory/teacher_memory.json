@@ -4,11 +4,12 @@
     "**Data Persistence with Pickling**",
     "**Data Structures with Dicts and Lists**",
     "Decorators for Enhanced Error Handling and Code Reusability",
-    "**Web Scraping with BeautifulSoup**"
+    "**Web Scraping with BeautifulSoup**",
+    "Exception Handling with Try-Except Blocks"
   ],
   "weak_areas": [
     "**Regular Expressions**",
     "**Web Scraping with BeautifulSoup**"
   ],
-  "total_runs": 5
+  "total_runs": 6
 }
