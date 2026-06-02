@@ -32,12 +32,19 @@
     "WebSockets and Real-time Communication in FastAPI",
     "API Versioning in FastAPI with Prefixes and Tags",
     "Asynchronous Background Tasks in FastAPI using Celery or asyncio",
-    "Database Integration with FastAPI using SQLAlchemy or asyncpg"
+    "Database Integration with FastAPI using SQLAlchemy or asyncpg",
+    "API Security with OAuth2 and JWT in FastAPI",
+    "API Documentation with FastAPI using OpenAPI and Swagger UI",
+    "Error Handling and Logging in FastAPI",
+    "File Upload and Download Handling in FastAPI",
+    "Asynchronous Background Tasks with FastAPI using Celery or asyncio",
+    "Caching with FastAPI using Redis or In-Memory Cache",
+    "Authentication and Authorization in FastAPI using JWT and OAuth",
+    "API Documentation with FastAPI using OpenAPI and Swagger UI",
+    "WebSockets and Real-Time Communication with FastAPI",
+    "API Rate Limiting and IP Blocking with FastAPI"
   ],
   "weak_areas": [
-    "**Regular Expressions**",
-    "**Web Scraping with BeautifulSoup**",
-    "Working with CSV and JSON Files",
     "Pathlib for File System Operations",
     "Regular Expressions for Input Validation",
     "Configuring and Using Python's argparse Module for Command-Line Argument Validation",
@@ -51,7 +58,13 @@
     "API Documentation with OpenAPI and Swagger in FastAPI",
     "Error Handling and Middleware in FastAPI",
     "WebSockets and Real-time Communication in FastAPI",
-    "Database Integration with FastAPI using SQLAlchemy or asyncpg"
+    "Database Integration with FastAPI using SQLAlchemy or asyncpg",
+    "API Documentation with FastAPI using OpenAPI and Swagger UI",
+    "Error Handling and Logging in FastAPI",
+    "File Upload and Download Handling in FastAPI",
+    "Authentication and Authorization in FastAPI using JWT and OAuth",
+    "WebSockets and Real-Time Communication with FastAPI",
+    "API Rate Limiting and IP Blocking with FastAPI"
   ],
-  "total_runs": 33
+  "total_runs": 43
 }
