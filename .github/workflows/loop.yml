@@ -59,4 +59,4 @@ jobs:
           echo "$(date)" >> .keepalive
           git add .keepalive
           git diff --staged --quiet || git commit -m "Auto: training record $(date +%Y%m%d-%H%M)"
-          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/briangekoabcxyz2-pixel/autonomous-ai-system.git || true
+          git pull --rebase https://${{ secrets.GITHUB_TOKEN }}@github.com/briangekoabcxyz2-pixel/autonomous-ai-system.git && git push https://${{ secrets.GITHUB_TOKEN }}@github.com/briangekoabcxyz2-pixel/autonomous-ai-system.git || true
