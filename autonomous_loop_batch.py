@@ -14,7 +14,7 @@ except Exception as e:
     def add_topic(t, s): pass
 
 DATASET_PATH = Path("datasets/training_data.jsonl")
-DAILY_TARGET = 100
+DAILY_TARGET = 200
 
 groq_keys = []
 for key_name in ["GROQ_API_KEY", "GROQ_API_KEY_2", "GROQ_API_KEY_3"]:
