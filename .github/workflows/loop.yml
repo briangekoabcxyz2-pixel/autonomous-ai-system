@@ -30,7 +30,7 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GROQ_API_KEY_2: ${{ secrets.GROQ_API_KEY_2 }}
           GROQ_API_KEY_3: ${{ secrets.GROQ_API_KEY_3 }}
-        run: python3 autonomous_loop_batch.py
+        run: python3 -u autonomous_loop_batch.py
 
       - name: Check if fine-tuning needed
         run: |
