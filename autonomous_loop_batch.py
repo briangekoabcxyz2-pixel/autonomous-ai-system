@@ -152,8 +152,7 @@ Return ONLY the task description."""
     eval_prompt = f"""You are an expert Python teacher evaluating a level {level}/10 student.
 Task: {task}
 Student output: {output}
-Evaluate on correctness, code quality, best practices, completeness.
-Provide detailed corrections.
+Evaluate correctness, code quality, best practices, completeness.
 End with exactly: SCORE: X (where X is 0-10)"""
 
     correction = ask_ai(eval_prompt, key_index, max_tokens=1024)
@@ -190,15 +189,12 @@ if __name__ == "__main__":
         if elapsed > 20000:
             print("[AAES] Max runtime reached, stopping.")
             break
-
         run_id += 1
         result = run_one(run_id, key_index)
-
         if result:
             succeeded += 1
         else:
             failed += 1
-
         key_index = (key_index + 1) % len(groq_keys)
 
     final_total = get_total()
