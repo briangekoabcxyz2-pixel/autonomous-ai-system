@@ -49,7 +49,7 @@ def ask_ai(prompt, key_index, max_tokens=1024):
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=max_tokens
             )
-            time.sleep(3)
+            time.sleep(4)
             return response.choices[0].message.content
         except Exception as e:
             if "429" in str(e) or "rate_limit" in str(e).lower():
@@ -70,7 +70,7 @@ def ask_student(prompt, key_index):
                 temperature=0.7,
                 max_tokens=1024
             )
-            time.sleep(3)
+            time.sleep(4)
             return response.choices[0].message.content
         except Exception as e:
             if "429" in str(e) or "rate_limit" in str(e).lower():
