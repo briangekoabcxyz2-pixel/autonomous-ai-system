@@ -143,14 +143,22 @@ def ask_ai(prompt, max_tokens=1024):
     exit(0)
 
 def ask_student(prompt):
+    # Wrap prompt to encourage quality student output
+    wrapped = f"""You are a Python developer completing a coding task.
+Write clean, working Python code for the following task.
+Include docstrings, type hints, and handle edge cases where appropriate.
+Show your implementation with brief inline comments.
+
+TASK:
+{prompt}"""
     for attempt in range(len(groq_keys)):
         try:
             client = get_groq_client()
             response = client.chat.completions.create(
                 model="llama-3.1-8b-instant",
-                messages=[{"role": "user", "content": prompt}],
+                messages=[{"role": "user", "content": wrapped}],
                 temperature=0.7,
-                max_tokens=1024
+                max_tokens=1500
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -220,14 +228,51 @@ Return ONLY the task description. Be specific and practical."""
     return ask_ai(prompt, max_tokens=600)
 
 def evaluate(prompt, output, level):
-    eval_prompt = f"""You are an expert Python teacher evaluating a level {level}/10 student.
-Task: {prompt}
-Student output: {output}
-Evaluate on correctness, code quality, best practices, completeness.
-Provide detailed corrections.
-End with exactly: SCORE: X (where X is 0-10)"""
+    eval_prompt = f"""You are a senior software engineer and Python expert conducting a thorough code review.
+
+TASK GIVEN TO STUDENT:
+{prompt}
+
+STUDENT SUBMISSION:
+{output}
+
+Conduct a professional code review covering ALL of the following sections:
+
+## 1. CORRECTNESS
+- Does the code solve the task correctly?
+- Are there any bugs or logical errors?
+- Does it handle the specified edge cases?
+
+## 2. CODE QUALITY
+- Is the code readable and well-structured?
+- Are variable and function names descriptive?
+- Is the code DRY (Don't Repeat Yourself)?
+- Is the complexity appropriate for the task?
+
+## 3. BEST PRACTICES
+- Does it follow PEP 8 style guidelines?
+- Are there proper docstrings and comments?
+- Is error handling implemented correctly?
+- Are type hints used where appropriate?
+
+## 4. COMPLETENESS
+- Are all requirements from the task fulfilled?
+- Are edge cases handled?
+- Is the solution production-ready?
+
+## 5. IMPROVED SOLUTION
+Provide a complete, corrected version of the code that demonstrates best practices.
+Include inline comments explaining key decisions.
+
+## 6. KEY LEARNING POINTS
+List 3-5 specific things the student should learn from this review.
+
+Be thorough, educational, and constructive. This review will be used to train an AI model.
+
+End your response with exactly this line:
+SCORE: X (where X is a number from 0 to 10 based on overall quality)"""
     for attempt in range(3):
-        correction = ask_ai(eval_prompt, max_tokens=1024)
+        correction = ask_ai(eval_prompt, max_tokens=2048)
         if "unavailable" in correction.lower() or "SCORE:" not in correction:
             print(f"[Evaluate] Attempt {attempt+1} failed, retrying...")
             import time
