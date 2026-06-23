@@ -47,6 +47,83 @@ LEVELS = {
     10: "full stack web applications with deployment and production config",
 }
 
+# Rich topic pool to force diversity
+TOPIC_POOL = {
+    1: [
+        "temperature unit converter", "simple calculator", "FizzBuzz with custom rules",
+        "number guessing game", "list sorting without built-ins", "string manipulation utilities",
+        "basic banking account", "simple todo list", "prime number checker", "fibonacci sequence",
+        "password strength checker", "word counter", "simple ATM machine", "grade calculator",
+        "Roman numeral converter",
+    ],
+    2: [
+        "inventory management system", "library book tracker", "employee payroll system",
+        "vehicle rental system", "university course enrollment", "bank account with inheritance",
+        "shape hierarchy with area calculation", "animal shelter management", "hotel room booking",
+        "e-commerce product catalog", "social media user profiles", "chess piece movement",
+        "restaurant order system", "hospital patient records", "flight booking system",
+    ],
+    3: [
+        "CSV file parser with validation", "JSON config file loader", "log file analyzer",
+        "file backup utility", "data migration script", "input sanitizer for web forms",
+        "retry mechanism for API calls", "custom exception hierarchy", "file encryption utility",
+        "directory tree walker", "database connection handler", "email validator",
+        "XML parser with error recovery", "bulk file renamer", "disk usage analyzer",
+    ],
+    4: [
+        "URL shortener API", "weather data API", "user authentication endpoints",
+        "product search API with filters", "rate limiting middleware", "file upload endpoint",
+        "webhook handler", "pagination system", "API versioning", "health check endpoint",
+        "CORS configuration", "request validation with Pydantic", "background task queue",
+        "API key management", "GraphQL-style query endpoint",
+    ],
+    5: [
+        "user activity tracking", "multi-tenant database schema", "soft delete pattern",
+        "database migrations with Alembic", "full-text search implementation",
+        "many-to-many relationships", "database connection pooling", "audit trail system",
+        "data archiving strategy", "query optimization patterns", "database seeding script",
+        "repository pattern implementation", "caching layer with Redis", "bulk insert optimization",
+        "database health monitoring",
+    ],
+    6: [
+        "async web scraper", "concurrent API fetcher", "async message queue consumer",
+        "WebSocket chat server", "async file processor", "parallel data pipeline",
+        "async rate limiter", "background job scheduler", "async database queries",
+        "event-driven notification system", "async cache warmer", "concurrent image processor",
+        "async email sender", "real-time data streaming", "async retry with backoff",
+    ],
+    7: [
+        "unit tests for payment processing", "mock external API calls", "test fixtures for database",
+        "parametrized test cases", "integration tests for REST API", "test coverage reporting",
+        "property-based testing", "snapshot testing", "performance benchmarking tests",
+        "test doubles and stubs", "BDD with pytest-bdd", "mutation testing",
+        "end-to-end API testing", "load testing with locust", "contract testing",
+    ],
+    8: [
+        "JWT authentication system", "OAuth2 with Google login", "role-based access control",
+        "API gateway with rate limiting", "microservices communication", "event sourcing pattern",
+        "CQRS implementation", "distributed session management", "two-factor authentication",
+        "API security headers", "password reset flow", "refresh token rotation",
+        "audit logging system", "IP whitelisting", "encrypted data storage",
+    ],
+    9: [
+        "React dashboard with FastAPI backend", "real-time charts with WebSockets",
+        "form validation frontend and backend", "file upload with progress bar",
+        "infinite scroll pagination", "dark mode toggle", "responsive navigation menu",
+        "search with autocomplete", "drag and drop interface", "image gallery with lazy loading",
+        "multi-step form wizard", "data table with sorting and filtering",
+        "toast notification system", "modal dialog component", "offline-first PWA",
+    ],
+    10: [
+        "CI/CD pipeline with GitHub Actions", "Docker containerization", "Kubernetes deployment",
+        "monitoring with Prometheus and Grafana", "logging with ELK stack",
+        "blue-green deployment strategy", "auto-scaling configuration", "secrets management",
+        "database backup automation", "SSL certificate management", "CDN configuration",
+        "load balancer setup", "disaster recovery plan", "performance profiling",
+        "zero-downtime deployment",
+    ],
+}
+
 def ask_ai(prompt, max_tokens=1024):
     for attempt in range(len(groq_keys)):
         try:
@@ -104,25 +181,43 @@ def get_stats():
     return total, avg_score, current_level
 
 def generate_topic(level, avg_score, total):
-    level_desc = LEVELS[level]
+    import random
+    # Use topic pool for diversity, fallback to AI if needed
+    pool = TOPIC_POOL.get(level, [])
     memory_summary = get_memory_summary() if MEMORY_ENABLED else ""
+    # Filter out recently used topics from memory
+    available = [t for t in pool if t.lower() not in memory_summary.lower()]
+    if not available:
+        available = pool  # reset if all used
+    if available:
+        return random.choice(available)
+    # Fallback to AI generation
+    level_desc = LEVELS[level]
     prompt = f"""You are an expert Python teacher designing a curriculum.
 Student level: {level}/10. Average score: {round(avg_score*100)}%. Tasks completed: {total}.
 Level focus: {level_desc}.
 Memory of past lessons: {memory_summary}
-Generate ONE specific coding topic. Avoid topics already covered. Return ONLY the topic name."""
-    return ask_ai(prompt, max_tokens=100)
+Generate ONE specific, real-world coding topic not in this list: {memory_summary}
+Return ONLY the topic name, no explanation."""
+    return ask_ai(prompt, max_tokens=50)
 
 def generate_task(topic, level, avg_score):
     level_desc = LEVELS[level]
     difficulty = "straightforward" if avg_score < 0.5 else "moderately challenging" if avg_score < 0.8 else "advanced"
-    prompt = f"""You are an expert Python teacher.
-Create ONE specific {difficulty} coding task for a student at level {level}/10.
+    prompt = f"""You are a senior software engineer creating a coding challenge.
 Topic: {topic}
-Level focus: {level_desc}
-The task should reflect actual production code patterns.
-Return ONLY the task description."""
-    return ask_ai(prompt, max_tokens=400)
+Difficulty: {difficulty} (Level {level}/10)
+Focus: {level_desc}
+
+Write a detailed, realistic coding task that:
+1. Reflects real production code scenarios
+2. Has clear requirements and constraints
+3. Includes example inputs and expected outputs
+4. Specifies edge cases to handle
+5. Mentions any libraries or patterns to use
+
+Return ONLY the task description. Be specific and practical."""
+    return ask_ai(prompt, max_tokens=600)
 
 def evaluate(prompt, output, level):
     eval_prompt = f"""You are an expert Python teacher evaluating a level {level}/10 student.
