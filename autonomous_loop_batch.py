@@ -145,7 +145,9 @@ def get_stats():
     total = len(records)
     recent = records[-20:]
     avg_score = sum(r.get("evaluation_score", 0) for r in recent) / len(recent)
-    current_level = min(15, max(1, (total // 100) + 1))
+    # Rotate across all 15 levels for diversity
+    # Every 15 records cycles through all levels once
+    current_level = (total % 15) + 1
     return total, avg_score, current_level
 
 def pick_topic(level, memory_summary):
