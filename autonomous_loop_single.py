@@ -131,13 +131,22 @@ Student output: {output}
 Evaluate on correctness, code quality, best practices, completeness.
 Provide detailed corrections.
 End with exactly: SCORE: X (where X is 0-10)"""
-    correction = ask_ai(eval_prompt, max_tokens=1024)
-    try:
-        score_line = [l for l in correction.split("\n") if "SCORE:" in l][-1]
-        score = int(score_line.split("SCORE:")[-1].strip().split()[0]) / 10
-    except:
-        score = 1 if "error" not in output.lower() else 0
-    return correction, score
+    for attempt in range(3):
+        correction = ask_ai(eval_prompt, max_tokens=1024)
+        if "unavailable" in correction.lower() or "SCORE:" not in correction:
+            print(f"[Evaluate] Attempt {attempt+1} failed, retrying...")
+            import time
+            time.sleep(30)
+            continue
+        try:
+            score_line = [l for l in correction.split("\n") if "SCORE:" in l][-1]
+            score = int(score_line.split("SCORE:")[-1].strip().split()[0]) / 10
+            return correction, score
+        except:
+            print(f"[Evaluate] Could not parse score on attempt {attempt+1}, retrying...")
+            time.sleep(30)
+    print("[Evaluate] All retries failed, skipping record.")
+    return None, None
 
 def store(prompt, output, correction, score, level, topic):
     DATASET_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -158,6 +167,9 @@ def run():
         output = ask_student(task)
         print(f"[Student] Response received.")
         correction, score = evaluate(task, output, level)
+        if correction is None or score is None:
+            print("[AAES] Evaluation failed after retries, skipping this record.")
+            return
         store(task, output, correction, score, level, topic)
         add_topic(topic, score)
         total_new = total + 1
